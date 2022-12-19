@@ -1,81 +1,82 @@
-import {Component} from 'react'
+import {useState, useEffect} from 'react'
 import {Searchbar} from './Searchbar/Searchbar'
 import {ImageGallery} from './ImageGallery/ImageGallery'
 import { Button } from './Button/Button'
 import { Loader } from './Loader/Loader'
 import {ModalWindow} from './Modal/Modal'
+import { response } from 'API'
 
 
-export class App extends Component {
-state = {
-  request: '',
-  images: [],
-  isLoading: false,
-  page: 1,
-  largeImage: null,
-}
+export const App = () => {
+  const [request, setRequest] = useState('');
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [largeImage, setLsargeImage] = useState(null);
 
-perPage = 12;
+  const perPage = 12;
 
-async componentDidUpdate(_, prevState) {
-  if (prevState.request !== this.state.request || prevState.page !== this.state.page) {
+useEffect(() => {
+  if (request) {
+
+  async function getData() {
     try {
-      this.setState({ isLoading: true });
-      const { hits } = await fetch(
-        `https://pixabay.com/api/?q=${this.state.request}&page=${this.state.page}&key=30777543-e493bf0203eb427eb0034605d&image_type=photo&orientation=horizontal&per_page=${this.perPage}`)
-        .then(response => response.json());
-        this.setState(prevState => ({
-          images: [...prevState.images, ...hits],
-        }));
+      setIsLoading(true);
+      const { hits } = await response(request, page, perPage);
+      setImages(prevState => [...prevState, ...hits]);
     } catch (error) {
       console.log(error);
+      return alert(`Ops, please try again`);
     } finally {
-      this.setState({ isLoading: false });
+      setIsLoading(false);
     }
-    return;
   }
+
+  getData();
 }
+}, [request, page, perPage]);
 
-onRequest = e => {
-  e.preventDefault();
-  const input = e.target.elements[1].value;
-  e.target.reset();
+  const onRequest = e => {
+    e.preventDefault();
+    const input = e.target.elements[1].value;
+    e.target.reset();
 
-  this.setState({ request: input, images: [], page: 1,});
-}
+    setRequest(input);
+    setImages([]);
+    setPage(1);
+  }
 
-onLoadMore = () => {
-  this.setState(prevState => ({ page: prevState.page + 1 }));
-}
+  const onLoadMore = () => {
+    setPage(prevState => (prevState + 1));
+  }
 
-onImageClick = (url, tags) => {
-  this.setState({ largeImage: { url, tags } });
-};
+  const onImageClick = (url, tags) => {
+    setLsargeImage({ url, tags });
+  };
 
-onHandleClose = () => {
-  this.setState({ largeImage: null});
-};
+  const onHandleClose = () => {
+    setLsargeImage(null);
+  };
 
-render () {
+
     return (
         <div>
-            <Searchbar onSubmit={this.onRequest} />
+            <Searchbar onSubmit={onRequest} />
             <ImageGallery
-                images={this.state.images}
-                onImageClick={this.onImageClick}
+                images={images}
+                onImageClick={onImageClick}
             />
-            {this.state.isLoading && <Loader/>}
-            {this.state.images.length === (this.state.page)*this.perPage && (
-              <Button onLoadMore={this.onLoadMore} />
+            {isLoading && <Loader/>}
+            {images.length === page*perPage && (
+              <Button onLoadMore={onLoadMore} />
             )}
-            {this.state.largeImage && (
+            {largeImage && (
               <ModalWindow
-                onHandleClose={this.onHandleClose}
-                url={this.state.largeImage.url}
-                tags={this.state.largeImage.tags}
+                onHandleClose={onHandleClose}
+                url={largeImage.url}
+                tags={largeImage.tags}
               />
         )}
         </div>
-    )
-}
+  )
 };

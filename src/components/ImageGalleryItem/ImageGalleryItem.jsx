@@ -1,4 +1,6 @@
-import {GalleryItem, GalleryItemImage} from './ImageGalleryItem.styled'
+import {GalleryItem, GalleryItemImage} from './ImageGalleryItem.styled';
+import PropTypes from 'prop-types';
+
 
 export const ImageGalleryItem =({ webformatURL, tags, onImageClick}) => {
     return (
@@ -7,3 +9,9 @@ export const ImageGalleryItem =({ webformatURL, tags, onImageClick}) => {
         </GalleryItem>
     )
 }
+
+ImageGalleryItem.propTypes = {
+    onImageClick: PropTypes.func.isRequired,
+    webformatURL: PropTypes.string.isRequired,
+    tags: PropTypes.string.isRequired,
+};
